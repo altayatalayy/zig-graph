@@ -1,0 +1,24 @@
+yaaa_version: 0.5
+
+imports:
+  - my_test.activity_graph
+
+deployed_instances:
+  - gateway_instance: my_test_input_gw
+    deploy_to: roudi
+    core_affinity: [0]
+    importance: 10
+  - gateway_instance: my_test_output_gw
+    deploy_to: roudi
+    core_affinity: [0]
+    importance: 10
+  - activity_instance: comp_a_activity_instance
+    deploy_to: roudi
+    thread_pool_size: 1
+    core_affinity: [0]
+    importance: 10
+  - activity_instance: comp_b_activity_instance
+    deploy_to: roudi
+    thread_pool_size: 1
+    core_affinity: [0]
+    importance: 10

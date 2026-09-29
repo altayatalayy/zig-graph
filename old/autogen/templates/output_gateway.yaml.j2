@@ -1,0 +1,26 @@
+yaaa_version: 0.5
+
+imports:
+{% for instance in activity_instances %}
+  - {{ instance.type }}.interfaces
+{% endfor %}
+
+stimulus:
+  kind: data
+  timeout_ms: 10
+  trigger:
+{% for p in input_ports %}
+    - {{ p.name }}
+{% endfor %}
+
+input_ports:
+{% for p in input_ports %}
+  - name: {{ p.name }}
+    type: {{ p.type }}
+    policy: {{ p.policy }}
+    cache_size: {{ p.cache_size }}
+{% endfor %}
+
+business_logic:
+  cpp_type: "{{ gateway_class_name }}Impl"
+  cpp_include: "{{ gateway_class_name }}Impl.hpp"

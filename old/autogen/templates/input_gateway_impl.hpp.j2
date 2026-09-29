@@ -1,0 +1,27 @@
+#ifndef {{ gateway_class_name.upper() }}_IMPL_HPP
+#define {{ gateway_class_name.upper() }}_IMPL_HPP
+
+#include <cstdint>
+#include <optional>
+#include <vector>
+
+#include "{{ gateway_class_name }}_types.hpp"
+
+using namespace demo_interfaces;
+
+class {{ gateway_class_name }}Impl : public {{ gateway_class_name }}UserInterface {
+public:
+    struct StepData {
+        std::uint64_t timestamp_ns;
+{% for p in gateway_output_ports %}
+        std::optional<{{ p.type }}> {{ p.name }};
+{% endfor %}
+    };
+
+    void gatewayMain({{ gateway_class_name }}_InputsFromAos& inputs, {{ gateway_class_name }}_OutputsToAos& outputs);
+
+private:
+    std::vector<StepData> getTestSteps();
+};
+
+#endif

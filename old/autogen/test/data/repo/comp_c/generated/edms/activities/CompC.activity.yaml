@@ -1,0 +1,9 @@
+input_ports:
+  - name: torque_req_input
+    type: TorqueReq
+  - name: driver_override_input
+    type: DriverOverride
+
+output_ports:
+  - name: brake_req_output
+    type: BrakeReq

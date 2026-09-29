@@ -1,0 +1,60 @@
+yaaa_version: 0.5
+
+imports:
+  - my_test.activity_graph
+
+deployment_targets:
+  - name: roudi
+    type: carma_0_22
+    mempool_config:
+        - chunk_size: 32
+          chunk_count: 4000
+        - chunk_size: 64
+          chunk_count: 1000
+        - chunk_size: 288
+          chunk_count: 50
+        - chunk_size: 416
+          chunk_count: 50
+        - chunk_size: 1184
+          chunk_count: 100
+        - chunk_size: 2176
+          chunk_count: 50
+        - chunk_size: 4640
+          chunk_count: 50
+        - chunk_size: 5376
+          chunk_count: 50
+        - chunk_size: 6400
+          chunk_count: 50
+        - chunk_size: 6912
+          chunk_count: 50
+        - chunk_size: 8160
+          chunk_count: 50
+        - chunk_size: 8224
+          chunk_count: 50
+        - chunk_size: 10496
+          chunk_count: 50
+        - chunk_size: 10752
+          chunk_count: 50
+        - chunk_size: 11264
+          chunk_count: 50
+        - chunk_size: 102432
+          chunk_count: 500
+        - chunk_size: 1048608
+          chunk_count: 100
+        - chunk_size: 2118688
+          chunk_count: 100
+
+deployed_instances:
+  - gateway_instance: my_test_input_gw
+    deploy_to: roudi
+    core_affinity: [0]
+    importance: 10
+  - gateway_instance: my_test_output_gw
+    deploy_to: roudi
+    core_affinity: [0]
+    importance: 10
+  - activity_instance: comp_a_activity_instance
+    deploy_to: roudi
+    thread_pool_size: 1
+    core_affinity: [0]
+    importance: 10

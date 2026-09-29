@@ -1,0 +1,27 @@
+gateway_instances:
+  - name: my_test_input_gw
+    type: MyTestInputGw
+    connections: []
+  - name: my_test_output_gw
+    type: MyTestOutputGw
+    connections:
+      - from: comp_a_activity_instance.acc_cmd_output
+        to: acccmd
+      - from: comp_b_activity_instance.torque_req_output
+        to: torquereq
+
+activity_instances:
+  - name: comp_a_activity_instance
+    type: CompA
+    connections:
+      - from: my_test_input_gw.vehiclespeed
+        to: vehicle_speed_input
+      - from: my_test_input_gw.targetspeed
+        to: target_speed_input
+  - name: comp_b_activity_instance
+    type: CompB
+    connections:
+      - from: comp_a_activity_instance.acc_cmd_output
+        to: acc_cmd_input
+      - from: my_test_input_gw.roadgrade
+        to: road_grade_input

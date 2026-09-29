@@ -1,0 +1,29 @@
+gateway_instances:
+  - name: ext_in_gw
+    type: ExtInGw
+    connections: []
+
+activity_instances:
+  - name: comp_a_activity_instance
+    type: CompA
+    connections:
+      - from: ext_in_gw.vehicle_speed
+        to: vehicle_speed_input
+      - from: ext_in_gw.target_speed
+        to: target_speed_input
+
+  - name: comp_b_activity_instance
+    type: CompB
+    connections:
+      - from: comp_a_activity_instance.acc_cmd_output
+        to: acc_cmd_input
+      - from: ext_in_gw.road_grade
+        to: road_grade_input
+
+  - name: comp_c_activity_instance
+    type: CompC
+    connections:
+      - from: comp_b_activity_instance.torque_req_output
+        to: torque_req_input
+      - from: ext_in_gw.driver_override
+        to: driver_override_input

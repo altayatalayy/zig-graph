@@ -1,0 +1,59 @@
+yaaa_version: 0.5
+
+imports:
+  - Application.activity_graph
+
+deployment_targets:
+  - name: roudi
+    type: carma_0_22
+    mempool_config:
+        - chunk_size: 32
+          chunk_count: 4000
+        - chunk_size: 64
+          chunk_count: 1000
+        - chunk_size: 288
+          chunk_count: 50
+        - chunk_size: 416
+          chunk_count: 50
+        - chunk_size: 1184
+          chunk_count: 100
+        - chunk_size: 2176
+          chunk_count: 50
+        - chunk_size: 4640
+          chunk_count: 50
+        - chunk_size: 5376
+          chunk_count: 50
+        - chunk_size: 6400
+          chunk_count: 50
+        - chunk_size: 6912
+          chunk_count: 50
+        - chunk_size: 8160
+          chunk_count: 50
+        - chunk_size: 8224
+          chunk_count: 50
+        - chunk_size: 10496
+          chunk_count: 50
+        - chunk_size: 10752
+          chunk_count: 50
+        - chunk_size: 11264
+          chunk_count: 50
+        - chunk_size: 102432
+          chunk_count: 500
+        - chunk_size: 1048608
+          chunk_count: 100
+        - chunk_size: 2118688
+          chunk_count: 100
+
+deployed_instances:
+{% for item in deployed_instances %}
+  - {{ item.kind }}: {{ item.name }}
+    deploy_to: roudi
+{% if item.kind == "gateway_instance" %}
+    core_affinity: [0]
+    importance: 10
+{% else %}
+    thread_pool_size: 1
+    core_affinity: [0]
+    importance: 10
+{% endif %}
+{% endfor %}

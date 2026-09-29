@@ -1,0 +1,18 @@
+gateway_instances:
+  - name: my_test_input_gw
+    type: MyTestInputGw
+    connections: []
+  - name: my_test_output_gw
+    type: MyTestOutputGw
+    connections:
+      - from: comp_a_activity_instance.acc_cmd_output
+        to: acccmd
+
+activity_instances:
+  - name: comp_a_activity_instance
+    type: CompA
+    connections:
+      - from: my_test_input_gw.vehiclespeed
+        to: vehicle_speed_input
+      - from: my_test_input_gw.targetspeed
+        to: target_speed_input

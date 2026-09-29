@@ -1,0 +1,54 @@
+cmake_minimum_required(VERSION 3.16)
+project({{ test_name }})
+
+if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_MODULE_PATH})
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_definitions(-ULOG_DEBUG_DISABLED -ULOG_INFO_DISABLED)
+
+find_package(aos_build_tools REQUIRED)
+find_package(aos_runtime_prod REQUIRED)
+find_package(aos_runtime_dev REQUIRED)
+
+# Set to "ON" if you want to use the new MTD deploy file
+set(MTD   "OFF")
+
+include(yaaa_init)
+
+yaaa_init(
+  ROOT_FILE "deployment/Deployment.deploy.yaml"
+  YAAA_IMPORT_DIRS
+    gateways
+    deployment
+#    {{ repo_root }}/focus_interfaces
+{% for instance in activity_instances %}
+    {{ activities_root }}/{{ instance.component_name }}/generated/edms/activities
+    {{ activities_root }}/{{ instance.component_name }}/generated/edms/runnables
+    {{ activities_root }}/{{ instance.component_name }}/generated/edms/interfaces
+{% endfor %}
+)
+
+# add_subdirectory({{ repo_root }}/focus_interfaces  ${CMAKE_BINARY_DIR}/focus_interfaces)
+# add_subdirectory({{ repo_root }}/focus_framework  ${CMAKE_BINARY_DIR}/focus_framework)
+# add_subdirectory({{ repo_root }}/common  ${CMAKE_BINARY_DIR}/common)
+
+add_subdirectory(../../../../onboard/common/focus_framework ${CMAKE_BINARY_DIR}/focus_framework)
+add_subdirectory(../../../../onboard/demo_application_v1/edms/interfaces ${CMAKE_BINARY_DIR}/demo_interfaces)
+
+add_subdirectory(gateways)
+add_subdirectory(deployment)
+
+{% for instance in activity_instances %}
+add_subdirectory({{ activities_root }}/{{ instance.component_name }}/generated/edms/activities  ${CMAKE_BINARY_DIR}/{{ instance.component_name }}_activities)
+add_subdirectory({{ activities_root }}/{{ instance.component_name }}/generated/edms/interfaces  ${CMAKE_BINARY_DIR}/{{ instance.component_name }}_interfaces)
+add_subdirectory({{ activities_root }}/{{ instance.component_name }}/generated/edms/runnables  ${CMAKE_BINARY_DIR}/{{ instance.component_name }}_runnables)
+add_subdirectory({{ activities_root }}/{{ instance.component_name }}/generated  ${CMAKE_BINARY_DIR}/{{ instance.component_name }}_generated)
+add_subdirectory({{ activities_root }}/{{ instance.component_name }}/user  ${CMAKE_BINARY_DIR}/{{ instance.component_name }}_user)
+{% endfor %}

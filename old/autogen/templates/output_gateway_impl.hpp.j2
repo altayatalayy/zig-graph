@@ -1,0 +1,12 @@
+#ifndef {{ gateway_class_name.upper() }}_IMPL_HPP
+#define {{ gateway_class_name.upper() }}_IMPL_HPP
+
+#include "{{ gateway_class_name }}_types.hpp"
+
+class {{ gateway_class_name }}Impl : public {{ gateway_class_name }}UserInterface {
+public:
+    void onStimulus({{ gateway_class_name }}_InStruct& inputs);
+    void gatewayMain({{ gateway_class_name }}_OutStruct& outputs);
+};
+
+#endif

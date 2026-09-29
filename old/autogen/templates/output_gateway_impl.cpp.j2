@@ -1,0 +1,24 @@
+#include <cstdio>
+
+#include "{{ gateway_class_name }}Impl.hpp"
+
+void {{ gateway_class_name }}Impl::onStimulus({{ gateway_class_name }}_InStruct& inputs){
+    /*
+    inputs.readInput();
+
+    if (inputs.filter()) {
+        inputs.forward();
+    }
+{% for p in gateway_input_ports %}
+
+    for (auto& sample : inputs.get().m_{{ p.name }}) {
+        const auto& d = sample.get();
+        std::fprintf(stderr, "[{{ p.name }}] received sample\n");
+        (void)d;
+    }
+{% endfor %}
+    */
+}
+
+void {{ gateway_class_name }}Impl::gatewayMain({{ gateway_class_name }}_OutStruct& outputs){
+}

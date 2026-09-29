@@ -1,0 +1,9 @@
+input_ports:
+  - name: vehicle_speed_input
+    type: VehicleSpeed
+  - name: target_speed_input
+    type: TargetSpeed
+
+output_ports:
+  - name: acc_cmd_output
+    type: AccCmd

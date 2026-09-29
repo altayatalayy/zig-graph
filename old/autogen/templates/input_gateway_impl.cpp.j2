@@ -1,0 +1,238 @@
+#include <cstdio>
+#include <utility>
+#include <vector>
+#include <charconv>
+#include <cstdint>
+#include <fstream>
+#include <optional>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+
+#include "{{ gateway_class_name }}Impl.hpp"
+
+#include "focus_software_unit.h"
+
+using namespace demo_interfaces;
+
+uint64_t step_counter = 0;
+
+
+void {{ gateway_class_name }}Impl::gatewayMain({{ gateway_class_name }}_InputsFromAos& inputs, {{ gateway_class_name }}_OutputsToAos& outputs){
+    const auto steps = getTestSteps();
+
+    FOCUS_LOG_INFO("num steps: {}", steps.size());
+
+    while (aos_signal_handler::RunningFlagHandler::getInstance().running()) {
+        if(step_counter >= steps.size()) return;
+
+        const auto& step = steps[step_counter];
+        step_counter++;
+        std::fprintf(
+            stderr,
+            "[step] timestamp_ns=%llu\n",
+            static_cast<unsigned long long>(step.timestamp_ns)
+        );
+{% for p in gateway_output_ports %}
+
+        if (step.{{ p.name }}.has_value()) {
+            auto sample = outputs.m_{{ p.name }}.allocate();
+            *sample = step.{{ p.name }}.value();
+            outputs.m_{{ p.name }}.send(std::move(sample));
+        }
+{% endfor %}
+    }
+
+    (void)inputs;
+
+}
+
+
+namespace {
+
+static std::string trimCopy(const std::string& value) {
+    std::size_t begin = 0;
+    while (begin < value.size()) {
+        const char c = value[begin];
+        if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+            break;
+        }
+        ++begin;
+    }
+
+    std::size_t end = value.size();
+    while (end > begin) {
+        const char c = value[end - 1];
+        if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
+            break;
+        }
+        --end;
+    }
+
+    return value.substr(begin, end - begin);
+}
+
+static std::vector<std::string> splitCsvLine(const std::string& line) {
+    std::vector<std::string> fields;
+    std::size_t start = 0;
+
+    while (true) {
+        const std::size_t comma = line.find(',', start);
+        if (comma == std::string::npos) {
+            fields.push_back(line.substr(start));
+            break;
+        }
+        fields.push_back(line.substr(start, comma - start));
+        start = comma + 1U;
+    }
+
+    return fields;
+}
+
+template <typename T>
+T parseRequiredNumber(const std::string& raw, const std::string& field_name, std::size_t line_number) {
+    const std::string text = trimCopy(raw);
+    if (text.empty()) {
+        throw std::runtime_error(
+            "Empty required numeric field '" + field_name +
+            "' at line " + std::to_string(line_number));
+    }
+
+    T value{};
+
+    if constexpr (std::is_integral<T>::value) {
+        const char* begin = text.data();
+        const char* end = text.data() + text.size();
+        const auto result = std::from_chars(begin, end, value);
+        if (result.ec != std::errc{} || result.ptr != end) {
+            throw std::runtime_error(
+                "Failed to parse integral field '" + field_name +
+                "' with value '" + text +
+                "' at line " + std::to_string(line_number));
+        }
+    } else if constexpr (std::is_floating_point<T>::value) {
+        std::istringstream iss(text);
+        iss >> value;
+        if (!iss || !iss.eof()) {
+            throw std::runtime_error(
+                "Failed to parse floating field '" + field_name +
+                "' with value '" + text +
+                "' at line " + std::to_string(line_number));
+        }
+    } else {
+        static_assert(std::is_arithmetic<T>::value, "T must be arithmetic");
+    }
+
+    return value;
+}
+
+static void validateHeader(
+    const std::vector<std::string>& actual_header,
+    const std::vector<std::string>& expected_header) {
+
+    if (actual_header.size() != expected_header.size()) {
+        throw std::runtime_error(
+            "CSV header column count mismatch. Expected " +
+            std::to_string(expected_header.size()) + ", got " +
+            std::to_string(actual_header.size()));
+    }
+
+    for (std::size_t i = 0; i < expected_header.size(); ++i) {
+        if (trimCopy(actual_header[i]) != expected_header[i]) {
+            throw std::runtime_error(
+                "CSV header mismatch at column " + std::to_string(i) +
+                ". Expected '" + expected_header[i] +
+                "', got '" + trimCopy(actual_header[i]) + "'");
+        }
+    }
+}
+
+} // namespace
+
+std::vector<{{ gateway_class_name }}Impl::StepData> {{ gateway_class_name }}Impl::getTestSteps() {
+    static const std::vector<std::string> kExpectedHeader = {
+{% for column in csv_columns %}
+        "{{ column }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+    };
+
+    std::ifstream file("{{ csv_file_path }}");
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open CSV file: {{ csv_file_path }}");
+    }
+
+    std::string line;
+    if (!std::getline(file, line)) {
+        throw std::runtime_error("CSV file is empty: {{ csv_file_path }}");
+    }
+
+    validateHeader(splitCsvLine(line), kExpectedHeader);
+
+    std::vector<StepData> steps;
+    std::size_t line_number = 1;
+
+    while (std::getline(file, line)) {
+        ++line_number;
+
+        if (trimCopy(line).empty()) {
+            continue;
+        }
+
+        const std::vector<std::string> fields = splitCsvLine(line);
+        if (fields.size() != kExpectedHeader.size()) {
+            throw std::runtime_error(
+                "CSV row column count mismatch at line " +
+                std::to_string(line_number) + ". Expected " +
+                std::to_string(kExpectedHeader.size()) + ", got " +
+                std::to_string(fields.size()));
+        }
+
+        StepData step{};
+        step.{{ timestamp_field_name }} =
+            parseRequiredNumber<{{ timestamp_cpp_type }}>(
+                fields[0],
+                "timestamp",
+                line_number);
+
+{% for member in step_members %}
+        {
+            const bool {{ member.member_name }}_all_empty =
+{% for field in member.fields %}
+                trimCopy(fields[{{ field.column_index }}]).empty(){% if not loop.last %} &&
+{% else %};{% endif %}
+{% endfor %}
+
+            const bool {{ member.member_name }}_any_empty =
+{% for field in member.fields %}
+                trimCopy(fields[{{ field.column_index }}]).empty(){% if not loop.last %} ||
+{% else %};{% endif %}
+{% endfor %}
+
+            if ({{ member.member_name }}_all_empty) {
+                step.{{ member.member_name }} = std::nullopt;
+            } else {
+                if ({{ member.member_name }}_any_empty) {
+                    throw std::runtime_error(
+                        "Partial CSV fill for struct '{{ member.member_name }}' at line " +
+                        std::to_string(line_number));
+                }
+
+                {{ member.cpp_type }} value{};
+{% for field in member.fields %}
+                value.{{ field.name }} =
+                    parseRequiredNumber<{{ field.cpp_type }}>(
+                        fields[{{ field.column_index }}],
+                        "{{ field.csv_column_name }}",
+                        line_number);
+{% endfor %}
+                step.{{ member.member_name }} = value;
+            }
+        }
+
+{% endfor %}
+        steps.push_back(step);
+    }
+
+    return steps;
+}

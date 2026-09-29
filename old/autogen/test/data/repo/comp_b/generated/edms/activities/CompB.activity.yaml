@@ -1,0 +1,9 @@
+input_ports:
+  - name: acc_cmd_input
+    type: AccCmd
+  - name: road_grade_input
+    type: RoadGrade
+
+output_ports:
+  - name: torque_req_output
+    type: TorqueReq

@@ -1,0 +1,9 @@
+{% for gateway in gateways %}
+yaaa_add_gateway(
+  NAME {{ gateway.class_name }}.gateway
+  CPP_INCLUDE_DIRS include
+  SOURCES
+    src/{{ gateway.class_name }}Impl.cpp
+  LINK_LIBRARIES demo_interfaces focus_framework
+)
+{% endfor %}

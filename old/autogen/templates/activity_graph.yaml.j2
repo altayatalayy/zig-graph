@@ -1,0 +1,39 @@
+yaaa_version: 0.5
+
+imports:
+{% for instance in gateway_instances %}
+  - {{ instance.type }}.gateway
+{% endfor %}
+{% for instance in activity_instances %}
+  - {{ instance.type }}.activity
+{% endfor %}
+
+gateway_instances:
+{% for instance in gateway_instances %}
+  - name: {{ instance.name }}
+    type: {{ instance.type }}
+{% if instance.connections %}
+    connections:
+{% for c in instance.connections %}
+      - from: {{ c.from_instance }}.{{ c.from_port }}
+        to: {{ c.to_port }}
+{% endfor %}
+{% else %}
+    connections: []
+{% endif %}
+{% endfor %}
+
+activity_instances:
+{% for instance in activity_instances %}
+  - name: {{ instance.name }}
+    type: {{ instance.type }}
+{% if instance.connections %}
+    connections:
+{% for c in instance.connections %}
+      - from: {{ c.from_instance }}.{{ c.from_port }}
+        to: {{ c.to_port }}
+{% endfor %}
+{% else %}
+    connections: []
+{% endif %}
+{% endfor %}

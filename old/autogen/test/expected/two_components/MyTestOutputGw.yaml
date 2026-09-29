@@ -1,0 +1,12 @@
+input_ports:
+  - name: acccmd
+    type: AccCmd
+    policy: new
+    cache_size: 1
+  - name: torquereq
+    type: TorqueReq
+    policy: new
+    cache_size: 1
+
+output_ports:
+[]

@@ -1,0 +1,16 @@
+yaaa_version: 0.5
+
+imports:
+{% for instance in activity_instances %}
+  - {{ instance.type }}.interfaces
+{% endfor %}
+
+output_ports:
+{% for p in output_ports %}
+  - name: {{ p.name }}
+    type: {{ p.type }}
+{% endfor %}
+
+business_logic:
+  cpp_type: "{{ gateway_class_name }}Impl"
+  cpp_include: "{{ gateway_class_name }}Impl.hpp"
