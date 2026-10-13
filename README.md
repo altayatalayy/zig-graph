@@ -1,6 +1,6 @@
 # zig-graph
 
-Small Zig 0.16 graph library with three focused types:
+Small Zig 0.17 graph library with three focused types:
 
 - **`Dag`** — a directed dependency DAG: cycle-safe edge insertion,
   topological sort, stable topological sort, and topological generations.
